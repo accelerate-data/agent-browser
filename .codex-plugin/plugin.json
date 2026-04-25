@@ -1,0 +1,31 @@
+{
+  "name": "agent-browser",
+  "version": "0.26.0",
+  "description": "Browser automation CLI for AI agents",
+  "author": {
+    "name": "Accelerate Data"
+  },
+  "repository": "https://github.com/accelerate-data/agent-browser",
+  "license": "Apache-2.0",
+  "keywords": [
+    "browser",
+    "browser-automation",
+    "automation",
+    "headless",
+    "chrome",
+    "cdp",
+    "cli",
+    "agent",
+    "codex",
+    "claude-code"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent Browser",
+    "shortDescription": "Browser automation CLI skills for AI agents.",
+    "developerName": "Accelerate Data",
+    "category": "Coding",
+    "capabilities": [],
+    "screenshots": []
+  }
+}

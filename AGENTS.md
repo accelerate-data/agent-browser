@@ -40,7 +40,7 @@ To prepare a release:
 
 1. Create a branch (e.g. `prepare-v0.24.0`)
 2. Bump `version` in `package.json`
-3. Run `pnpm version:sync` to update `cli/Cargo.toml`, `cli/Cargo.lock`, and `packages/dashboard/package.json`
+3. Run `pnpm version:sync` to update `cli/Cargo.toml`, `cli/Cargo.lock`, `packages/dashboard/package.json`, `.claude-plugin/plugin.json`, and `.codex-plugin/plugin.json`
 4. Write the changelog entry in `CHANGELOG.md` at the top, under a new `## <version>` heading, wrapped in `<!-- release:start -->` and `<!-- release:end -->` markers. Remove the `<!-- release:start -->` and `<!-- release:end -->` markers from the previous release entry so only the new release has markers.
 5. Add a matching entry to `docs/src/app/changelog/page.mdx` at the top (below the `# Changelog` heading)
 6. Open a PR and merge to `main`
