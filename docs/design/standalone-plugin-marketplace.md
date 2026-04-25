@@ -18,8 +18,7 @@ enough to survive regular upstream syncs.
 - Preserve upstream source history and continue syncing from
   `vercel-labs/agent-browser`.
 - Add Claude and Codex plugin manifests at the repository root.
-- Register the Accelerate Data fork in the internal plugin marketplace under the
-  Coding category.
+- Keep internal marketplace registration outside this repository.
 - Avoid duplicating `agent-browser` skill content in `engineering-skills`.
 
 ## Non-Goals
@@ -38,7 +37,6 @@ The standalone plugin source should expose:
 ```text
 .
 ├── .claude-plugin/
-│   ├── marketplace.json
 │   └── plugin.json
 ├── .codex-plugin/
 │   └── plugin.json
@@ -49,14 +47,17 @@ The standalone plugin source should expose:
 └── package.json
 ```
 
-The root plugin manifests should use the package version from `package.json` and
-point skills at `./skills`. The skill itself remains the upstream thin discovery
-stub that directs agents to load the core skill through `agent-browser skills get
-core`.
+The root plugin manifests should use the package version from `package.json`.
+The Claude manifest should point skills at `./skills`; the Codex manifest should
+point skills at `./skills/`. The skill itself remains the upstream thin
+discovery stub that directs agents to load the core skill through `agent-browser
+skills get core`.
 
 ## Upstream Sync
 
-Add a scheduled GitHub Actions workflow in the fork:
+Add a scheduled GitHub Actions workflow in the fork. The workflow should run
+weekly, support manual dispatch, and be guarded so it only pushes from
+`accelerate-data/agent-browser`:
 
 - Checkout `main` with full history.
 - Add `https://github.com/vercel-labs/agent-browser.git` as `upstream`.
@@ -71,20 +72,23 @@ manual resolution.
 
 ## Marketplace Registration
 
-The internal marketplace is `plugin-marketplace`.
+The internal marketplace is `plugin-marketplace`. This `agent-browser`
+repository should expose the plugin source files only; internal marketplace
+index entries belong in the separate `plugin-marketplace` repository.
 
-Claude marketplace entry:
+Claude marketplace entry in `plugin-marketplace`:
 
-- Add `agent-browser` to `.claude-plugin/marketplace.json`.
+- Add `agent-browser` to `plugin-marketplace/.claude-plugin/marketplace.json`.
 - Use `source: "url"` with
   `https://github.com/accelerate-data/agent-browser.git`.
 - Keep entries sorted alphabetically.
-- Bump `.claude-plugin/marketplace.json.metadata.version`.
+- Bump
+  `plugin-marketplace/.claude-plugin/marketplace.json.metadata.version`.
 - Do not add a `version` field to the marketplace entry.
 
-Codex marketplace entry:
+Codex marketplace entry in `plugin-marketplace`:
 
-- Add `agent-browser` to `.agents/plugins/marketplace.json`.
+- Add `agent-browser` to `plugin-marketplace/.agents/plugins/marketplace.json`.
 - Use `source: "url"` with
   `https://github.com/accelerate-data/agent-browser.git`.
 - Set `category` to `Coding`.
@@ -111,20 +115,24 @@ python3 scripts/validate-marketplace.py
 python3 scripts/check-plugin-version-bump.py --base-ref origin/main
 ```
 
-For `engineering-skills` after removal:
+For `engineering-skills` verification:
 
 ```bash
 npm run validate:plugin-manifests
-npm run eval:coverage
-npm run eval:codex-compatibility
 ```
+
+If duplicated `agent-browser` skill content is found and removed, also run
+`npm run eval:coverage` and `npm run eval:codex-compatibility`.
 
 ## Rollout
 
-1. Remove `skills/agent-browser` from `engineering-skills` and bump its plugin
-   manifests because plugin content changed.
-2. Add standalone plugin manifests and upstream sync workflow in
+1. Verify `engineering-skills` does not contain active duplicated
+   `agent-browser` skill content. If a copy exists, remove it and bump its
+   plugin manifests because plugin content changed.
+2. Add standalone plugin manifests and the weekly upstream sync workflow in
    `agent-browser`.
-3. Register `agent-browser` in `plugin-marketplace` as a Coding plugin.
-4. Validate all three repositories.
-5. Commit the repositories independently so ownership boundaries remain clear.
+3. Merge the `agent-browser` source changes to the default branch.
+4. Register `agent-browser` in `plugin-marketplace` as a Coding plugin after the
+   source repository exposes the root plugin manifests on its default branch.
+5. Validate all three repositories.
+6. Commit the repositories independently so ownership boundaries remain clear.

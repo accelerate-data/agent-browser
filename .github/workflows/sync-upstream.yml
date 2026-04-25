@@ -1,0 +1,79 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+concurrency: sync-upstream-main
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Merge upstream main
+    if: github.repository == 'accelerate-data/agent-browser'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/vercel-labs/agent-browser.git
+          git fetch upstream main
+
+      - name: Merge upstream main
+        run: git merge --no-edit upstream/main
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync package versions
+        run: |
+          pnpm run version:sync
+          if ! git diff --quiet; then
+            git add cli/Cargo.toml cli/Cargo.lock packages/dashboard/package.json .claude-plugin/plugin.json .codex-plugin/plugin.json
+            git commit -m "chore: sync fork plugin versions"
+          fi
+
+      - name: Validate merged tree
+        run: |
+          node scripts/check-version-sync.js
+          python3 -m json.tool .claude-plugin/plugin.json >/dev/null
+          python3 -m json.tool .codex-plugin/plugin.json >/dev/null
+          test -f skills/agent-browser/SKILL.md
+          grep -q "agent-browser skills get core" skills/agent-browser/SKILL.md
+          git diff --check
+          cargo fmt --manifest-path cli/Cargo.toml -- --check
+          cargo clippy --manifest-path cli/Cargo.toml -- -D warnings
+          cargo test --profile ci --manifest-path cli/Cargo.toml
+          pnpm --filter dashboard build
+
+      - name: Push fork main
+        run: git push origin HEAD:main

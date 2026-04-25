@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Verifies that package.json and cli/Cargo.toml have the same version.
- * Used in CI to catch version drift.
+ * Verifies that package.json is the single source of truth for package,
+ * Cargo, and plugin manifest versions. Used in CI to catch version drift.
  */
 
 import { readFileSync } from 'fs';
@@ -16,6 +16,10 @@ const rootDir = join(__dirname, '..');
 const packageJson = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf-8'));
 const packageVersion = packageJson.version;
 
+function readJsonVersion(relativePath) {
+  return JSON.parse(readFileSync(join(rootDir, relativePath), 'utf-8')).version;
+}
+
 // Read Cargo.toml version
 const cargoToml = readFileSync(join(rootDir, 'cli/Cargo.toml'), 'utf-8');
 const cargoVersionMatch = cargoToml.match(/^version\s*=\s*"([^"]*)"/m);
@@ -27,9 +31,10 @@ if (!cargoVersionMatch) {
 
 const cargoVersion = cargoVersionMatch[1];
 
-// Read dashboard package.json version
-const dashboardPkg = JSON.parse(readFileSync(join(rootDir, 'packages/dashboard/package.json'), 'utf-8'));
-const dashboardVersion = dashboardPkg.version;
+// Read package and plugin manifest versions
+const dashboardVersion = readJsonVersion('packages/dashboard/package.json');
+const claudePluginVersion = readJsonVersion('.claude-plugin/plugin.json');
+const codexPluginVersion = readJsonVersion('.codex-plugin/plugin.json');
 
 const mismatches = [];
 if (packageVersion !== cargoVersion) {
@@ -37,6 +42,12 @@ if (packageVersion !== cargoVersion) {
 }
 if (packageVersion !== dashboardVersion) {
   mismatches.push(`  packages/dashboard:          ${dashboardVersion}`);
+}
+if (packageVersion !== claudePluginVersion) {
+  mismatches.push(`  .claude-plugin/plugin.json:  ${claudePluginVersion}`);
+}
+if (packageVersion !== codexPluginVersion) {
+  mismatches.push(`  .codex-plugin/plugin.json:   ${codexPluginVersion}`);
 }
 
 if (mismatches.length > 0) {

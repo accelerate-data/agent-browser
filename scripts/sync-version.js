@@ -14,6 +14,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, "..");
 const cliDir = join(rootDir, "cli");
 
+function syncJsonVersion(relativePath, version) {
+  const filePath = join(rootDir, relativePath);
+  const json = JSON.parse(readFileSync(filePath, "utf-8"));
+
+  if (json.version !== version) {
+    const oldVersion = json.version;
+    json.version = version;
+    writeFileSync(filePath, JSON.stringify(json, null, 2) + "\n");
+    console.log(`  Updated ${relativePath}: ${oldVersion} -> ${version}`);
+  } else {
+    console.log(`  ${relativePath} already up to date`);
+  }
+}
+
 // Read version from package.json (single source of truth)
 const packageJson = JSON.parse(
   readFileSync(join(rootDir, "package.json"), "utf-8")
@@ -44,17 +58,10 @@ if (cargoVersionRegex.test(cargoToml)) {
   process.exit(1);
 }
 
-// Update packages/dashboard/package.json
-const dashboardPkgPath = join(rootDir, "packages", "dashboard", "package.json");
-const dashboardPkg = JSON.parse(readFileSync(dashboardPkgPath, "utf-8"));
-if (dashboardPkg.version !== version) {
-  const oldVersion = dashboardPkg.version;
-  dashboardPkg.version = version;
-  writeFileSync(dashboardPkgPath, JSON.stringify(dashboardPkg, null, 2) + "\n");
-  console.log(`  Updated packages/dashboard/package.json: ${oldVersion} -> ${version}`);
-} else {
-  console.log(`  packages/dashboard/package.json already up to date`);
-}
+// Update package and plugin manifests
+syncJsonVersion(join("packages", "dashboard", "package.json"), version);
+syncJsonVersion(join(".claude-plugin", "plugin.json"), version);
+syncJsonVersion(join(".codex-plugin", "plugin.json"), version);
 
 // Update Cargo.lock to match Cargo.toml
 if (cargoTomlUpdated) {
