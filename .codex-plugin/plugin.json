@@ -1,6 +1,6 @@
 {
   "name": "agent-browser",
-  "version": "0.26.0",
+  "version": "0.26.1",
   "description": "Browser automation CLI for AI agents",
   "author": {
     "name": "Accelerate Data"
@@ -24,8 +24,9 @@
     "displayName": "Agent Browser",
     "shortDescription": "Browser automation CLI skills for AI agents.",
     "developerName": "Accelerate Data",
-    "category": "Coding",
+    "category": "Developer Tools",
     "capabilities": [],
-    "screenshots": []
+    "screenshots": [],
+    "longDescription": "Browser automation CLI for AI agents"
   }
 }

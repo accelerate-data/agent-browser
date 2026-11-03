@@ -1,8 +1,19 @@
 # agent-browser
 
-## 0.26.0
+## 0.26.1
 
 <!-- release:start -->
+### Bug Fixes
+
+- Fixed **ChatGPT plugin listing metadata** by adding an explicit long description and using the supported Developer Tools category.
+
+### Contributors
+
+- @admiraldata
+<!-- release:end -->
+
+## 0.26.0
+
 ### New Features
 
 - **`doctor` command** - Added `agent-browser doctor` for one-shot diagnosis of an install. Checks environment, Chrome, running daemons, config files, security, providers, and network connectivity; auto-cleans stale daemon sidecar files on every run; and performs a live headless launch test. Supports `--offline` to skip network probes, `--quick` to skip the launch test, `--fix` for opt-in repairs (install missing Chrome, close version-mismatched daemons, prune expired state files), and `--json` for structured output (#1254)
@@ -24,7 +35,6 @@
 - @DJRHails
 - @michael-farah
 - @tomdale
-<!-- release:end -->
 
 ## 0.25.5
 
